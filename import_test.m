@@ -1,11 +1,11 @@
 clear all
-test_data = lvm_import("test.lvm")
-[extracted_data,init_param]= interpretdata(test_data)
-
-
-plot(extracted_data.catagoriseddata.time,extracted_data.rawdata(:,2:5))
-hold on
-yline(init_param)
+% test_data = lvm_import("test.lvm")
+% [extracted_data,init_param]= interpretdata(test_data)
+% 
+% 
+% plot(extracted_data.catagoriseddata.time,extracted_data.rawdata(:,2:5))
+% hold on
+% yline(init_param)
 
 
 
@@ -28,3 +28,6 @@ for i =1:size(results,1)
     end
 
 end
+
+
+plot(data(90).catagoriseddata.time,data(90).rawdata(:,2:5))
