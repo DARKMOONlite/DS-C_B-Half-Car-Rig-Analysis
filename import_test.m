@@ -31,3 +31,25 @@ end
 
 
 plot(data(90).catagoriseddata.time,data(90).rawdata(:,2:5))
+plot(data(46).catagoriseddata.time,data(46).rawdata(:,2:5))
+plot(data(47).catagoriseddata.time,data(47).rawdata(:,2:5))
+plot(data(48).catagoriseddata.time,data(48).rawdata(:,2:5))
+
+row = data(46).rawdata(:,2:5);
+fftResult = fft(row);
+magnitude = abs(fftResult);
+plot(magnitude)
+plot(fftResult)
+
+Fs = 5000; % Your Sampling frequency
+N = 0.3*(row); % Length of your signal
+f = (0:N-1)*(Fs/N); % Frequency vector
+plot(f, magnitude)
+xlabel('Frequency (Hz)')
+ylabel('Magnitude')
+
+%%these aren't right
+% Assuming these are the additional row indices
+rows = [46, 47, 48]; 
+% Extract the rows and compute their average
+averageRows = mean(data(46).rawdata(rows, 2:5), 1)
