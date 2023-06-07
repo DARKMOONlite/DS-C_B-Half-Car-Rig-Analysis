@@ -35,20 +35,17 @@ plot(data(46).catagoriseddata.time,data(46).rawdata(:,2:5))
 plot(data(47).catagoriseddata.time,data(47).rawdata(:,2:5))
 plot(data(48).catagoriseddata.time,data(48).rawdata(:,2:5))
 
-row = data(46).rawdata(:,2:5);
-fftResult = fft(row);
-
-
+fftResult = fft(data(46).rawdata(:,2:5));
 magnitude = abs(fftResult);
 plot(magnitude)
 plot(fftResult)
 
-Fs = 5000; % Your Sampling frequency
-N = 0.3*(row); % Length of your signal
+Fs = 1000; % Your Sampling frequency
+N = length(selectedRow); % Length of your signal
 f = (0:N-1)*(Fs/N); % Frequency vector
-plot(f, magnitude)
-xlabel('Frequency (Hz)')
-ylabel('Magnitude')
+plot(f, magnitude);
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
 
 %%these aren't right
 % Assuming these are the additional row indices
