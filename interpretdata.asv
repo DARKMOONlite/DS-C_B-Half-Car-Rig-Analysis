@@ -10,10 +10,10 @@ function [data,init_var] = interpretdata(LVM_DATA)
     data.cdata.x1 = (LVM_DATA.Segment1.data(:,2)+LVM_DATA.Segment1.data(:,3))/2;
     data.cdata.x2=data.cdata.LVDT3;
     data.cdata.x3=data.cdata.LVDT4;
-    data.cdata.roll=atan((data.cdata.LVDT1-data.cdata.LVDT2)/1500);
-    
+    data.cdata.roll=
 
-  
+    
+    
     [~,peaks] = findpeaks(LVM_DATA.Segment1.data(:,2));
     
     init_var = LVM_DATA.Segment1.data(peaks(1),2:5);

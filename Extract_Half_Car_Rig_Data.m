@@ -48,10 +48,10 @@ function [averaged_data]=Extract_Half_Car_Rig_Data()
             mean(combined_array,3);
             averaged_data(j).rawdata=mean(combined_array,3);
     
-            averaged_data(j).catagoriseddata.LVDT1=averaged_data(j).rawdata(:,2);
-            averaged_data(j).catagoriseddata.LVDT2=averaged_data(j).rawdata(:,3);
-            averaged_data(j).catagoriseddata.LVDT3=averaged_data(j).rawdata(:,4);
-            averaged_data(j).catagoriseddata.LVDT4=averaged_data(j).rawdata(:,5);
+            averaged_data(j).cdata.LVDT1=averaged_data(j).rawdata(:,2);
+            averaged_data(j).cdata.LVDT2=averaged_data(j).rawdata(:,3);
+            averaged_data(j).cdata.LVDT3=averaged_data(j).rawdata(:,4);
+            averaged_data(j).cdata.LVDT4=averaged_data(j).rawdata(:,5);
      
             j=j+1;
         else
