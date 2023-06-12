@@ -1,10 +1,10 @@
 function [averaged_data]=Extract_Half_Car_Rig_Data()
 
     
-    results = find_data("LAB TEST FOLDER");
+    [results] = find_data("LAB TEST FOLDER");
     %% Extracting Relavent Data
     for i =1:size(results,1)
-        data(i) = interpretdata(lvm_import(fullfile(results(i).folder,results(i).name)));
+        [data(i),init_var] = interpretdata(lvm_import(fullfile(results(i).folder,results(i).name)));
         folders=regexp(fullfile(results(i).folder,results(i).name),'\','split');
         data_folder_names(i,1:2) = [folders(size(folders,2)-1),folders(size(folders,2)-2)];
         name = regexp(fullfile(results(i).folder,results(i).name),'_','split');
@@ -29,6 +29,7 @@ function [averaged_data]=Extract_Half_Car_Rig_Data()
         data(i).("Lift_Position") = data_folder_names(i,2);
         data(i).("damping") = data_folder_names(i,3);
         data(i).("mass") = data_folder_names(i,4);
+        data(i).("init_var")= init_var;
     end
     %% Sorting Data
     test = struct2table(data);
@@ -52,7 +53,18 @@ function [averaged_data]=Extract_Half_Car_Rig_Data()
             averaged_data(j).cdata.LVDT2=averaged_data(j).rawdata(:,3);
             averaged_data(j).cdata.LVDT3=averaged_data(j).rawdata(:,4);
             averaged_data(j).cdata.LVDT4=averaged_data(j).rawdata(:,5);
-     
+
+
+            averaged_data(j).cdata.x1 = (averaged_data(j).cdata.LVDT1+averaged_data(j).cdata.LVDT2)/2;
+            averaged_data(j).cdata.x2 = averaged_data(j).cdata.LVDT3;
+            averaged_data(j).cdata.x3 = averaged_data(j).cdata.LVDT4;
+            averaged_data(j).cdata.roll=atan((averaged_data(j).cdata.LVDT1-averaged_data(j).cdata.LVDT2)/1500);
+            averaged_data(j).rawdof = [averaged_data(j).cdata.time,averaged_data(j).cdata.x1,averaged_data(j).cdata.roll,averaged_data(j).cdata.x2,averaged_data(j).cdata.x3];
+            
+            [~,peaks] = findpeaks(averaged_data(j).rawdof(:,2));
+
+            averaged_data(j).init_var = averaged_data(j).rawdof(peaks(1),2:5);
+
             j=j+1;
         else
             error("data has dissimilar fields")
