@@ -58,7 +58,7 @@ function [averaged_data]=Extract_Half_Car_Rig_Data()
             averaged_data(j).cdata.x1 = (averaged_data(j).cdata.LVDT1+averaged_data(j).cdata.LVDT2)/2;
             averaged_data(j).cdata.x2 = averaged_data(j).cdata.LVDT3;
             averaged_data(j).cdata.x3 = averaged_data(j).cdata.LVDT4;
-            averaged_data(j).cdata.roll=atan((averaged_data(j).cdata.LVDT1-averaged_data(j).cdata.LVDT2)/1500);
+            averaged_data(j).cdata.roll=atan((averaged_data(j).cdata.LVDT1-averaged_data(j).cdata.LVDT2)/1.5);
             averaged_data(j).rawdof = [averaged_data(j).cdata.time,averaged_data(j).cdata.x1,averaged_data(j).cdata.roll,averaged_data(j).cdata.x2,averaged_data(j).cdata.x3];
             
             [~,peaks] = findpeaks(averaged_data(j).rawdof(:,2));
