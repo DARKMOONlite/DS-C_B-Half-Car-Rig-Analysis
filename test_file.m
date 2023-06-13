@@ -26,12 +26,14 @@ end
 figure("name","fft");
 tiledlayout(4,4);
 for i=1:length(data)/2
+    
+    
     nexttile;
     dt=(data(i).cdata.time(2)-data(i).cdata.time(1));
     T = dt*length(data(1).cdata.x1);
     df=1/T;
 
-    fft_data= fft(data(i).rawdof(:,2:5),[],1);
+    fft_data= fft(data(i).rawdof(:,2:5),2^nextpow2(length(data(i).cdata.time)));
     K = length(fft_data)/2;
     fft_mag = sqrt(fft_data(1:K,:).*conj(fft_data(1:K,:)));
     fft_mag = fft_mag*2;
@@ -45,6 +47,41 @@ for i=1:length(data)/2
     axis([0 100 1e-6 10]);
     title(strcat(data(i).Lift_Position,"\_",data(i).Test,"\_",data(i).damping,"\_",data(i).mass));
 end
+%% these ffts have all been multiplied so that their highest amplitued in time domain is 1
+figure("name"," multiplied fft");
+tiledlayout(4,4);
+for i=1:length(data)/2
+    init_var = data(i).init_var;
+    multiplied_data = data(i).rawdof(:,:);
+    for j=1:length(init_var)
+        multiplier(j) = 1000/init_var(j);
+        multiplied_data(:,j+1) =  multiplied_data(:,j+1)*multiplier(j);
+    end
+    
+
+    
+    
+
+    nexttile;
+    dt=(data(i).cdata.time(2)-data(i).cdata.time(1));
+    T = dt*length(data(1).cdata.x1);
+    df=1/T;
+
+    fft_data= fft(multiplied_data(:,2:5),2^nextpow2(length(data(i).cdata.time)));
+    K = length(fft_data)/2;
+    fft_mag = sqrt(fft_data(1:K,:).*conj(fft_data(1:K,:)));
+    fft_mag = fft_mag*2;
+    fft_mag(1)=fft_mag(1)/2;
+    fft_mag = fft_mag/length(fft_mag);
+    
+    % bins = [0:K-1]
+    freq = 0:df:(K-1)*df;
+
+    semilogy(freq,fft_mag);
+    axis([0 100 1e-6 10]);
+    title(strcat(data(i).Lift_Position,"\_",data(i).Test,"\_",data(i).damping,"\_",data(i).mass));
+end
+
 
 % fft_data = fft(data(1).rawdata(:,2:5),[],1)
 % 
