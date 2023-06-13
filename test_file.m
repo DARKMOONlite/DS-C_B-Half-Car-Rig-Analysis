@@ -1,4 +1,9 @@
+%% Setup
 
+addpath(genpath("LAB TEST FOLDER"))
+addpath(genpath("functions"))
+addpath(genpath("simulink"))
+addpath(genpath("data"))
 
 %% Extract Data
 clear all
@@ -52,6 +57,8 @@ figure('name','FFT with nodes');
 tiledlayout(4,4)
 
 for i=1:length(data)/2
+
+
     nexttile;
     dt = (data(i).cdata.time(2)-data(i).cdata.time(1));
     T = dt*length(data(1).cdata.x1);
@@ -86,12 +93,13 @@ end
     hold off;
     xlim([0 20]);
     title(strcat(data(i).Lift_Position,"\_",data(i).Test,"\_",data(i).damping,"\_",data(i).mass));
-end
-    % Create node tables
     for j = 1:4
         node_table = array2table([freq(locs(:,j))' pks(:,j)], 'VariableNames', {'Frequency', 'Magnitude'});
-        writetable(node_table, strcat('node_table_', num2str(i), '_column_', num2str(j), '.csv'));
+        writetable(node_table,"data/Node_data.xlsx", "Sheet",strcat(data(i).Lift_Position,"_",data(i).Test,"_",data(i).damping,"_",data(i).mass),"Range",strcat(char(j*3+64),string(1)));
     end
+end
+    % Create node tables
+
 
 figure('name','FFT with nodes and phases');
 tiledlayout(8,4)  % Double the number of rows to fit phase plots
@@ -114,6 +122,8 @@ for i=1:length(data)/2
    fft_phase = angle(fft_data(1:K,:));  % Phase data
     peakFreqs = zeros(numPeaks, 4);  % Matrix to store the peak frequencies
     peakPhases = zeros(numPeaks, 4);  % Matrix to store the peak phases
+       
+
 
     for j = 1:4
 
@@ -131,9 +141,9 @@ for i=1:length(data)/2
     % Create table with peak frequencies and their corresponding phases
     for j = 1:4
         freqPhaseTable = table(peakFreqs(:,j), peakPhases(:,j), 'VariableNames', {'Frequency', 'Phase'});
-        writetable(freqPhaseTable, strcat('FreqPhaseTable_', num2str(i), '_column_', num2str(j), '.csv'));
+        writetable(freqPhaseTable,"data/Freq_Phase_Data.xlsx", "Sheet",strcat(data(i).Lift_Position,"_",data(i).Test,"_",data(i).damping,"_",data(i).mass),"Range",strcat(char(j*3+64),string(1)));
     end
-      
+      % strcat('FreqPhaseTable_', num2str(i), '_column_', num2str(j), '.csv'));
         
         pks(1:length(topPeaks), j) = topPeaks;
         locs(1:length(topIndices), j) = topIndices;
@@ -175,7 +185,7 @@ Y = 1:size(fft_mag, 2)
 
 % Plot the waterfall
 figure
-waterfall(X, Y, fft_mag)
+waterfall(X, Y, fft_mag.')
 xlabel('Frequency (Hz)')
 ylabel('Run Number')
 zlabel('FFT Magnitude')
@@ -186,10 +196,10 @@ title('Waterfall Plot')
 % Extract Data
 %data = Extract_Half_Car_Rig_Data();
 
-%Fs = 5000;  % sampling frequency
+Fs = 5000;  % sampling frequency
 
 % Create tiled layout
-%tiledlayout(8,4)
+tiledlayout(8,4)
 
 % Iterate over all data sets
 for i=1:size(data,2)
