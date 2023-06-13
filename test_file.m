@@ -80,9 +80,9 @@ for i=1:length(data)/2
     locs = zeros(numPeaks, 4); % Matrix to store the peak indices
 
    for j = 1:4
-        [peaks, indices] = findpeaks(fft_mag(:, j));
+        [resolved_peaks, indices] = findpeaks(fft_mag(:, j));
         % Sort peaks in descending order and select the largest ones
-        [sortedPeaks, sortIndex] = sort(peaks, 'descend');
+        [sortedPeaks, sortIndex] = sort(resolved_peaks, 'descend');
         topPeaks = sortedPeaks(1:min(numPeaks,end));
         topIndices = indices(sortIndex(1:min(numPeaks,end)));
         
@@ -131,10 +131,10 @@ for i=1:length(data)/2
 
     for j = 1:4
 
-        [peaks, indices] = findpeaks(fft_mag(:, j));
+        [resolved_peaks, indices] = findpeaks(fft_mag(:, j));
 
         % Sort peaks in descending order and select the largest ones
-        [sortedPeaks, sortIndex] = sort(peaks, 'descend');
+        [sortedPeaks, sortIndex] = sort(resolved_peaks, 'descend');
         topPeaks = sortedPeaks(1:min(numPeaks,end));
         topIndices = indices(sortIndex(1:min(numPeaks,end)));
 
@@ -170,64 +170,99 @@ title(strcat(data(i).Lift_Position,"\_",data(i).Test,"\_",data(i).damping,"\_",d
 
 %% Waterfall plot 
 
+
+
+
 % Assuming freq and fft_mag are your frequency and FFT magnitude data respectively.
 % freq should be a 1D array, while fft_mag should be a 2D array, with each column representing data from each run
+resolution = 1;
+i=1;
+ribbon_data = zeros(length(fft(data(i).rawdof(:,2:5),[],1))/2,4)
+for i =1:4
+    dt = (data(i).cdata.time(2)-data(i).cdata.time(1));
+    T = dt*length(data(1).cdata.x1);
+    df=1/T;
+
+    fft_data = fft(data(i).rawdof(:,2:5),[],1);
+    K = length(fft_data)/2;
+    fft_mag_w = abs(fft_data(1:K,:))/K;
+    fft_mag_w(1,:) = fft_mag_w(1,:)/2;
+    ribbon_data(:,i) = fft_mag_w(1:resolution:end,1);
+
+end
+
+
+waterfall_temp = zeros(size(ribbon_data));
+for i=1:length(waterfall_temp)
+    waterfall_temp(i,:)=[500,1000,1500,2000];
+end
+waterfall_time=zeros(size(ribbon_data));
+for i=1:size(waterfall_temp,2)
+    waterfall_time(:,i) = [0:df:df*(length(waterfall_temp)-1)];
+end
+
+waterfall(waterfall_temp(1:K/50,:),waterfall_time(1:K/50,:),mag2db(ribbon_data(1:K/50,:)));
+
+% semilogy(waterfall_time(:,1),ribbon_data(:,1))
+% axis([0 100 1e-6 10]);
+
+
 
 % Make sure freq is a column vector
-freq = freq(:);
-
-% Make sure fft_mag is oriented correctly
-if size(fft_mag, 1) ~= length(freq)
-    fft_mag = fft_mag.'
-end
-
-% Create a grid of y values (each run)
-Y = 1:size(fft_mag, 2)
-
-% Create a grid for the waterfall plot
-[X, Y] = meshgrid(freq, Y)
-
-% Plot the waterfall
-figure
-waterfall(X, Y, fft_mag.')
-xlabel('Frequency (Hz)')
-ylabel('Run Number')
-zlabel('FFT Magnitude')
-title('Waterfall Plot')
-
-
-ribbon
-% meshgrid(-3:.125:3);
-
-%%gm FFT 
-% Extract Data
-%data = Extract_Half_Car_Rig_Data();
-
-Fs = 5000;  % sampling frequency
-
-% Create tiled layout
-tiledlayout(8,4)
-
-% Iterate over all data sets
-for i=1:size(data,2)
-    % Compute FFT of the data
-    fft_data = fft(data(i).rawdata(:,4));
-    L = length(data(i).rawdata(:,4));  % length of the signal
-    f = Fs*(0:(L/2))/L;  % frequency vector
-    P2 = abs(fft_data/L);  % double-sided spectrum
-    P1 = P2(1:L/2+1);  % single-sided spectrum
-    P1(2:end-1) = 2*P1(2:end-1);
-
-    % Plot the single-sided amplitude spectrum in the next tile
-    nexttile;
-    semilogy(f,P1)
-    title(strcat(data(i).Lift_Position,"\_",data(i).Test,"\_",data(i).damping,"\_",data(i).mass));
-    xlabel('Frequency (f)')
-    ylabel('|P1(f)| in dB')
-    
-    % Set the x-axis limit to 20
-    xlim([0 20])
-end
+% freq = freq(:);
+% 
+% % Make sure fft_mag is oriented correctly
+% if size(fft_mag, 1) ~= length(freq)
+%     fft_mag = fft_mag.'
+% end
+% 
+% % Create a grid of y values (each run)
+% Y = 1:size(fft_mag, 2)
+% 
+% % Create a grid for the waterfall plot
+% [X, Y] = meshgrid(freq, Y)
+% 
+% % Plot the waterfall
+% figure
+% waterfall(X, Y, fft_mag.')
+% xlabel('Frequency (Hz)')
+% ylabel('Run Number')
+% zlabel('FFT Magnitude')
+% title('Waterfall Plot')
+% 
+% 
+% ribbon
+% % meshgrid(-3:.125:3);
+% 
+% %%gm FFT 
+% % Extract Data
+% %data = Extract_Half_Car_Rig_Data();
+% 
+% Fs = 5000;  % sampling frequency
+% 
+% % Create tiled layout
+% tiledlayout(8,4)
+% 
+% % Iterate over all data sets
+% for i=1:size(data,2)
+%     % Compute FFT of the data
+%     fft_data = fft(data(i).rawdata(:,4));
+%     L = length(data(i).rawdata(:,4));  % length of the signal
+%     f = Fs*(0:(L/2))/L;  % frequency vector
+%     P2 = abs(fft_data/L);  % double-sided spectrum
+%     P1 = P2(1:L/2+1);  % single-sided spectrum
+%     P1(2:end-1) = 2*P1(2:end-1);
+% 
+%     % Plot the single-sided amplitude spectrum in the next tile
+%     nexttile;
+%     semilogy(f,P1)
+%     title(strcat(data(i).Lift_Position,"\_",data(i).Test,"\_",data(i).damping,"\_",data(i).mass));
+%     xlabel('Frequency (f)')
+%     ylabel('|P1(f)| in dB')
+% 
+%     % Set the x-axis limit to 20
+%     xlim([0 20])
+% end
 
 
 % fft_data = fft(data(1).rawdata(:,2:5),[],1)
