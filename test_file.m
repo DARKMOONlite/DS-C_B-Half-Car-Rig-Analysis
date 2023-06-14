@@ -170,9 +170,6 @@ title(strcat(data(i).Lift_Position,"\_",data(i).Test,"\_",data(i).damping,"\_",d
 
 %% Waterfall plot 
 
-
-
-
 % Assuming freq and fft_mag are your frequency and FFT magnitude data respectively.
 % freq should be a 1D array, while fft_mag should be a 2D array, with each column representing data from each run
 resolution = 1;
@@ -206,103 +203,67 @@ waterfall(waterfall_temp(1:K/50,:),waterfall_time(1:K/50,:),mag2db(ribbon_data(1
 % semilogy(waterfall_time(:,1),ribbon_data(:,1))
 % axis([0 100 1e-6 10]);
 
+%% TRANSFER FUNCTION - Welch and Hann comparison to fft, undamped no mass 
+init_var = data(29).init_var;
+fft_data = fft(data(29).rawdof(:,2), [], 1);
 
+% Ensure init_var and fft_data have the same size
+if size(init_var,1) < size(fft_data,1)
+    init_var = repmat(init_var,size(fft_data,1),1);
+elseif size(init_var,1) > size(fft_data,1)
+    fft_data = repmat(fft_data,size(init_var,1),1);
+end
 
-% Make sure freq is a column vector
-% freq = freq(:);
-% 
-% % Make sure fft_mag is oriented correctly
-% if size(fft_mag, 1) ~= length(freq)
-%     fft_mag = fft_mag.'
-% end
-% 
-% % Create a grid of y values (each run)
-% Y = 1:size(fft_mag, 2)
-% 
-% % Create a grid for the waterfall plot
-% [X, Y] = meshgrid(freq, Y)
-% 
-% % Plot the waterfall
-% figure
-% waterfall(X, Y, fft_mag.')
-% xlabel('Frequency (Hz)')
-% ylabel('Run Number')
-% zlabel('FFT Magnitude')
-% title('Waterfall Plot')
-% 
-% 
-% ribbon
-% % meshgrid(-3:.125:3);
-% 
-% %%gm FFT 
-% % Extract Data
-% %data = Extract_Half_Car_Rig_Data();
-% 
-% Fs = 5000;  % sampling frequency
-% 
-% % Create tiled layout
-% tiledlayout(8,4)
-% 
-% % Iterate over all data sets
-% for i=1:size(data,2)
-%     % Compute FFT of the data
-%     fft_data = fft(data(i).rawdata(:,4));
-%     L = length(data(i).rawdata(:,4));  % length of the signal
-%     f = Fs*(0:(L/2))/L;  % frequency vector
-%     P2 = abs(fft_data/L);  % double-sided spectrum
-%     P1 = P2(1:L/2+1);  % single-sided spectrum
-%     P1(2:end-1) = 2*P1(2:end-1);
-% 
-%     % Plot the single-sided amplitude spectrum in the next tile
-%     nexttile;
-%     semilogy(f,P1)
-%     title(strcat(data(i).Lift_Position,"\_",data(i).Test,"\_",data(i).damping,"\_",data(i).mass));
-%     xlabel('Frequency (f)')
-%     ylabel('|P1(f)| in dB')
-% 
-%     % Set the x-axis limit to 20
-%     xlim([0 20])
-% end
+Pack1 = [init_var fft_data];
 
+blocks = 1;
+NFFT = 20000 * blocks;
+fs = 5000; % Define sampling frequency
+count = 1;
 
-% fft_data = fft(data(1).rawdata(:,2:5),[],1)
-% 
-% plot(data(1).cdata.time, fft_data)
+% Here you need to define which column from Pack1 is the input and which is the output
+input = Pack1(:,1);
+output = Pack1(:,2);
 
-%%%Compute the single-sided amplitude spectrum of the signal.
-% fft_data = fft(data(1).rawdata(:,2:5),[],1);
-% Fs = 5000;
-% L = 20000;
-% f = Fs*(0:(L-1)/2)/L;
+[Gd, F] = cpsd(input, input, hann(NFFT), NFFT/2, NFFT, fs);
+[Gn, ~] = cpsd(output, input, hann(NFFT), NFFT/2, NFFT, fs);
 
-% dt=(data(1).cdata.time(2)-data(1).cdata.time(1));
-% T = dt*length(data(1).cdata.LVDT1);
-% df=1/T;
-% 
-% K = length(fft_data)/2;
-% 
-% fft_mag = sqrt(fft_data(1:K,1).*conj(fft_data(1:K,1)));
-% fft_mag = fft_mag*2;
-% fft_mag(1)=fft_mag(1)/2;
-% fft_mag = fft_mag/length(fft_mag);
-% 
-% 
-% 
-% freq = 0:df:(K-1)*df
-% 
-% 
-% semilogy(freq,fft_mag)
-% axis([0 500 1e-5 10]); title('200 Hz rectangular window');
-% P2 = abs(fft_data/L);
-% P1 = P2(1:(L+1)/2);
-% P1(2:end) = 2*P1(2:end);
-% %%In the frequency domain, plot the single-sided spectrum. Because the time sampling of the signal is quite short, the frequency resolution of the Fourier transform is not precise enough to show the peak frequency near 4 Hz.
-% 
-% plot(f,P1,"-o") 
-% title("Single-Sided Spectrum of Original Signal")
-% xlabel("f (Hz)")
-% ylabel("|P1(f)|")
+%[Gd, F] = cpsd(input, input, hann(NFFT), NFFT/2, NFFT, fs); % PSD of input
+%[Gn, ~] = cpsd(output, output, hann(NFFT), NFFT/2, NFFT, fs); % PSD of output
+%[Gcross, ~] = cpsd(input, output, hann(NFFT), NFFT/2, NFFT, fs); % CPSD of input and output
+%H(:, count) = Gcross ./ Gd; % Transfer function is the ratio of the CPSD and the PSD of input
 
-%% % find peaks and their corresponding indices
-    
-    [pks, locs] = findpeaks(fft_mag (:,1), 'MinPeakHeight', 0.0001, 'MinPeakDistance', 0.001);
+H(:, count) = Gn ./ Gd;
+count = count + 1;
+  
+H1A = mean(H, 2);
+H1A_mag = abs(H1A);
+H1A_mag = H1A_mag(1:length(F)); % Match the size with F
+H1A_phase = -angle(H1A) * 180/pi;
+H1A_phase = H1A_phase(1:length(F)); % Match the size with F
+
+clear H Gn Gd count;
+
+% FRF
+figure;
+subplot(2, 1, 1);
+    plot(F, 20*log10(H1A_mag));
+    grid on; grid minor;
+    xlabel('Frequency (Hz)'); ylabel('Magnitude (dB)');
+    title('Center undamped no mass lab data transfer function using Welch and Hann window');
+    xlim([0 10]);
+
+subplot(2, 1, 2);
+    plot(F, H1A_phase);
+    grid on; grid minor;
+    xlabel('Frequency (Hz)'); ylabel('Phase (degrees)');
+    xlim([0 10]);
+
+    %%phase not working input = Pack1(:,1);
+
+    %% Now fit the transfer function 
+   dataWTF = iddata(output, input, 1/1000);
+    symWTF = tfest(dataWTF,3)
+    sysdWTF = c2d(symWTF,1/1000);
+    estimate1 = filter(sysdWTF.Numerator,sysdWTF.Denominator, init_var);
+
