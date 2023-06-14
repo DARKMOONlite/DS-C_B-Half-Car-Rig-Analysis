@@ -152,13 +152,51 @@ for i=1:length(data)/2
     hold off;
     title(strcat(data(i).Lift_Position,"\_",data(i).Test,"\_",data(i).damping,"\_",data(i).mass," Phase"));
 
+%%ribbon
+filtered_data = data(indices);
+% Initialize an empty array to store indices
+indices = [];
+
+% Loop through the data structure
+for i = 1:length(data)
+    % Check for conditions in the desired columns
+    if strcmp(data(i).rawdof(4,:),'damped') && strcmp(data(i).rawdof(6,:),'centre')
+        % If conditions are met, append the index to the array
+        indices = [indices; i];
+    end
+end
+
+% Use indices to get the desired data from the structure
+fft_results = cell(size(filtered_data));  % initialize an empty cell array to store fft results
+
+% Apply FFT
+for i = 1:length(filtered_data)
+    fft_results{i} = fft(filtered_data(i).rawdof(:,2),[],1);
+end
+% Convert the cell array to a matrix
+fft_matrix = cell2mat(fft_results');
+
+% Create the ribbon plot
+figure;
+ribbon(abs(fft_matrix)); % abs is used to get the magnitude of the complex numbers resulted from FFT
+title('Ribbon Plot');
+
+%%%
+fft(data(i).rawdof(:,2:5),[],1);
+ribbon = fft(data(i).rawdof(:,2),[],1)
+
 
 %%Waterfall plot 
 % Assuming freq and fft_mag are your frequency and FFT magnitude data respectively.
 % freq should be a 1D array, while fft_mag should be a 2D array, with each column representing data from each run
 
-% Make sure freq is a column vector
-freq = freq(:);
+ribbon 4 columns 
+each column from a data set roll mass 1, translation of mass 1 with increased damping 
+
+[X,Y] = meshgrid(-3:.125:3);
+Z = peaks(X,Y);
+waterfall(X,Y,Z)
+
 
 % Make sure fft_mag is oriented correctly
 if size(fft_mag, 1) ~= length(freq)
@@ -166,7 +204,7 @@ if size(fft_mag, 1) ~= length(freq)
 end
 
 % Create a grid of y values (each run)
-Y = 1:size(fft_mag, 2)
+Y = 1:size(fft_mag, 1,:)
 
 % Create a grid for the waterfall plot
 [X, Y] = meshgrid(freq, Y)
@@ -249,6 +287,3 @@ end
 % xlabel("f (Hz)")
 % ylabel("|P1(f)|")
 
-%% % find peaks and their corresponding indices
-    
-    [pks, locs] = findpeaks(fft_mag (:,1), 'MinPeakHeight', 0.0001, 'MinPeakDistance', 0.001);
